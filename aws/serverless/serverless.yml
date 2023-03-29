@@ -1,0 +1,29 @@
+service: meutesteapi
+# app and org for use with dashboard.serverless.com
+# app: my-app-test
+# org:  my-org-test
+# frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  versionFunctions: false
+  memorySize: 128
+  environment:
+    variable1: value1
+  profile: ${self:custom.profiles.${sls:stage}}
+
+functions:
+  lambda-hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /lambdas/echo
+          method: get
+
+custom:
+  profiles:
+    dev: msc-dev
+    hom: msc-hom
+    # prod: msc-prod

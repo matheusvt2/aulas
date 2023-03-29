@@ -1,0 +1,56 @@
+service: meutestesqs
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  versionFunctions: false
+  memorySize: 128
+  environment:
+    variable1: value1
+  profile: ${self:custom.profiles.${sls:stage}}
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "sqs:SendMessage"
+            - "sqs:GetQueueUrl"
+          Resource: "arn:aws:sqs:${self:provider.region}:*:fila-*"
+        - Effect: "Allow"
+          Action:
+            - "sqs:ListQueues"
+          Resource: "arn:aws:sqs:${self:provider.region}:*:*"
+
+functions:
+  lambda-hello:
+    handler: handler.hello
+    events:
+      - sqs:
+          arn: 
+            Fn::GetAtt:
+              - FilaEntrada
+              - Arn
+            
+resources:
+  Resources:
+    FilaEntrada:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "fila-entrada"
+    FilaSaida:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "fila-saida"
+
+custom:
+  profiles:
+    dev: msc-dev
+    hom: msc-hom
+#    prod: msc-prod
+  pythonRequirements:
+    dockerizePip: true #non-linux
+
+# Para instalar pacotes não nativos https://www.serverless.com/plugins/serverless-python-requirements
+plugins:
+  - serverless-python-requirements
